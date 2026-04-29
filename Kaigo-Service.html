@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>介護日本語 — Belajar Kaigo</title>
+  <title>SALLKAIGO — Belajar Kaigo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Noto+Serif+JP:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
   <style>
@@ -21,9 +21,9 @@
       --shadow:  0 4px 24px rgba(26,26,46,.10);
       --radius:  18px;
 
-      --c1: #C84B31;  /* vermillion  – vocab 1 */
-      --c2: #2E86AB;  /* ocean blue  – vocab 2 */
-      --c3: #3D9970;  /* moss green  – vocab 3 */
+      --c1: #C84B31;  /* vermillion  – Bagian Kesehatan */
+      --c2: #2E86AB;  /* ocean blue  – Bagian Tubuh */
+      --c3: #3D9970;  /* moss green  – Bagian Makanan */
       --c4: #8B5CF6;  /* violet      – kanji   */
 
       --font-jp:   'Noto Serif JP', serif;
@@ -650,7 +650,7 @@
 const DATA = {
 
   vocab1: {
-    title: 'Kosakata Bagian 1',
+    title: 'Kosakata Penyakit',
     sub:   'Aktivitas Harian & Tubuh',
     type:  'vocab',
     accent:'acc1',
@@ -686,11 +686,12 @@ const DATA = {
       { word:'排泄',    reading:'はいせつ',            meaning:'Buang air (BAK/BAB)',
         explanation:'Segala aktivitas terkait buang air kecil maupun buang air besar klien.',
         example:'排泄の記録をつけてください。', exampleMeaning:'Mohon catat catatan buang air klien.' }
+      { word:'臥床', reading:'がしょう', meaning:'Berbaring'}
     ]
   },
 
   vocab2: {
-    title: 'Kosakata Bagian 2',
+    title: 'Kosakata Makanan',
     sub:   'Peralatan & Kondisi Pasien',
     type:  'vocab',
     accent:'acc2',
@@ -730,7 +731,7 @@ const DATA = {
   },
 
   vocab3: {
-    title: 'Kosakata Bagian 3',
+    title: 'Kosakata Kesehatan',
     sub:   'Komunikasi & Situasi Darurat',
     type:  'vocab',
     accent:'acc3',
