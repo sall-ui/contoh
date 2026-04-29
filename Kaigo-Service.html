@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>介護日本語 — Belajar Kaigo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Noto+Serif+JP:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ===========================
+       RESET & VARIABLES
+    =========================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:   #F6F1E9;
+      --ink:     #1A1A2E;
+      --muted:   #6B6B80;
+      --card-bg: #FFFFFF;
+      --gold:    #D4A017;
+      --shadow:  0 4px 24px rgba(26,26,46,.10);
+      --radius:  18px;
+
+      --c1: #C84B31;  /* vermillion  – vocab 1 */
+      --c2: #2E86AB;  /* ocean blue  – vocab 2 */
+      --c3: #3D9970;  /* moss green  – vocab 3 */
+      --c4: #8B5CF6;  /* violet      – kanji   */
+
+      --font-jp:   'Noto Serif JP', serif;
+      --font-body: 'Noto Sans JP', sans-serif;
+      --font-ui:   'DM Sans', sans-serif;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ===========================
+       PAGE SYSTEM (SPA)
+    =========================== */
+    .page { display: none; flex-direction: column; min-height: 100vh; }
+    .page.active { display: flex; }
+
+    /* ===========================
+       SHARED HEADER
+    =========================== */
+    .site-header {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,.28);
+    }
+    .header-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .logo-kanji {
+      font-family: var(--font-jp);
+      font-size: 1.9rem;
+      line-height: 1;
+      color: var(--gold);
+    }
+    .logo-text { display: flex; flex-direction: column; line-height: 1.25; }
+    .logo-main { font-weight: 600; font-size: .92rem; letter-spacing: .03em; }
+    .logo-sub  { font-size: .68rem; opacity: .6; letter-spacing: .05em; }
+    .level-badge {
+      background: var(--gold);
+      color: var(--ink);
+      font-size: .68rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: .08em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--cream);
+      font-size: .82rem;
+      opacity: .8;
+      cursor: pointer;
+      transition: opacity .2s;
+      white-space: nowrap;
+    }
+    .back-btn:hover { opacity: 1; }
+    .page-title-wrap { text-align: center; }
+    .page-title-main { font-weight: 600; font-size: .92rem; display: block; }
+    .page-title-sub  { font-size: .68rem; opacity: .6; display: block; }
+
+    /* ===========================
+       SHARED FOOTER
+    =========================== */
+    .site-footer {
+      text-align: center;
+      padding: 18px;
+      font-size: .72rem;
+      color: var(--muted);
+      border-top: 1px solid rgba(0,0,0,.07);
+      margin-top: auto;
+    }
+
+    /* ===========================
+       HOME PAGE
+    =========================== */
+    .home-main {
+      flex: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+      width: 100%;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 36px;
+      padding-top: 4px;
+    }
+    .hero-tagline {
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      line-height: 1.8;
+      opacity: .82;
+    }
+    .hero-tagline em {
+      font-style: italic;
+      color: var(--c1);
+      font-family: var(--font-jp);
+    }
+
+    .section-title {
+      font-size: .85rem;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* Category Cards */
+    .card-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .category-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      border-left: 6px solid transparent;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease;
+      user-select: none;
+    }
+    .category-card:hover  { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(26,26,46,.13); }
+    .category-card:active { transform: scale(.98); }
+    .category-card.c1 { border-color: var(--c1); }
+    .category-card.c2 { border-color: var(--c2); }
+    .category-card.c3 { border-color: var(--c3); }
+    .category-card.c4 { border-color: var(--c4); }
+
+    .cat-icon {
+      font-family: var(--font-jp);
+      font-size: 1.9rem;
+      width: 50px; height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+    .c1 .cat-icon { background: #FEF0EC; color: var(--c1); }
+    .c2 .cat-icon { background: #EBF5FB; color: var(--c2); }
+    .c3 .cat-icon { background: #EAFAF3; color: var(--c3); }
+    .c4 .cat-icon { background: #F3EEFF; color: var(--c4); }
+
+    .cat-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .cat-label { font-weight: 600; font-size: .93rem; }
+    .cat-desc  { font-size: .78rem; color: var(--muted); }
+    .cat-count { font-size: .72rem; font-weight: 600; margin-top: 3px; }
+    .c1 .cat-count { color: var(--c1); }
+    .c2 .cat-count { color: var(--c2); }
+    .c3 .cat-count { color: var(--c3); }
+    .c4 .cat-count { color: var(--c4); }
+
+    .cat-arrow { font-size: 1.1rem; color: var(--muted); transition: transform .2s; }
+    .category-card:hover .cat-arrow { transform: translateX(4px); }
+
+    /* Tips */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .tip-card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 14px 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .tip-num { font-size: 1.2rem; font-weight: 700; color: var(--gold); font-family: var(--font-jp); }
+    .tip-card p { font-size: .75rem; line-height: 1.5; color: var(--muted); }
+    .tip-card strong { color: var(--ink); }
+
+    /* ===========================
+       FLASHCARD PAGE
+    =========================== */
+    .flashcard-main {
+      flex: 1;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Progress */
+    .progress-bar-wrap {
+      width: 100%;
+      background: rgba(0,0,0,.09);
+      border-radius: 99px;
+      height: 6px;
+      margin-bottom: 7px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width .4s ease;
+      width: 0%;
+    }
+    .progress-text {
+      font-size: .76rem;
+      color: var(--muted);
+      margin-bottom: 22px;
+      align-self: flex-end;
+    }
+
+    /* Accent colours per category */
+    .acc1 .progress-bar-fill { background: var(--c1); }
+    .acc2 .progress-bar-fill { background: var(--c2); }
+    .acc3 .progress-bar-fill { background: var(--c3); }
+    .acc4 .progress-bar-fill { background: var(--c4); }
+
+    .acc1 .card-front { border-top: 5px solid var(--c1); }
+    .acc2 .card-front { border-top: 5px solid var(--c2); }
+    .acc3 .card-front { border-top: 5px solid var(--c3); }
+    .acc4 .card-front { border-top: 5px solid var(--c4); }
+
+    .acc1 .btn-next { background: var(--c1); }
+    .acc2 .btn-next { background: var(--c2); }
+    .acc3 .btn-next { background: var(--c3); }
+    .acc4 .btn-next { background: var(--c4); }
+
+    /* 3-D Flip Card */
+    .scene {
+      width: 100%;
+      max-width: 440px;
+      height: 290px;
+      perspective: 900px;
+      cursor: pointer;
+      margin-bottom: 26px;
+    }
+    .card-3d {
+      width: 100%; height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform .55s cubic-bezier(.4,0,.2,1);
+      border-radius: var(--radius);
+    }
+    .card-3d.flipped { transform: rotateY(180deg); }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 22px 20px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .card-front { background: var(--card-bg); }
+    .card-back  { background: var(--ink); color: var(--cream); transform: rotateY(180deg); }
+
+    /* Front */
+    .card-hint {
+      font-size: .68rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .card-jp-word {
+      font-family: var(--font-jp);
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .card-reading {
+      font-family: var(--font-body);
+      font-size: .98rem;
+      color: var(--muted);
+    }
+    .card-kanji-main {
+      font-family: var(--font-jp);
+      font-size: 4.2rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .tap-hint {
+      position: absolute;
+      bottom: 13px;
+      font-size: .68rem;
+      color: var(--muted);
+      opacity: .7;
+    }
+
+    /* Back */
+    .card-meaning {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 9px;
+      color: var(--gold);
+      font-family: var(--font-body);
+    }
+    .card-explanation {
+      font-size: .8rem;
+      line-height: 1.65;
+      opacity: .85;
+      margin-bottom: 10px;
+      max-width: 340px;
+    }
+    .card-example {
+      font-family: var(--font-body);
+      font-size: .78rem;
+      background: rgba(255,255,255,.09);
+      border-radius: 10px;
+      padding: 8px 14px;
+      line-height: 1.65;
+      width: 100%;
+      max-width: 360px;
+    }
+    .card-example em {
+      font-style: normal;
+      display: block;
+      font-size: .72rem;
+      opacity: .68;
+      margin-top: 2px;
+    }
+
+    /* Kanji back */
+    .kanji-readings {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .reading-item {
+      background: rgba(255,255,255,.1);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: .76rem;
+    }
+    .reading-label { font-size: .62rem; opacity: .6; display: block; }
+    .reading-val   { font-family: var(--font-body); font-weight: 600; }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 440px;
+    }
+    .btn {
+      flex: 1;
+      padding: 13px 8px;
+      border: none;
+      border-radius: 14px;
+      font-family: var(--font-ui);
+      font-size: .86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .14s, box-shadow .14s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .btn:active { transform: scale(.96); }
+    .btn-prev    { background: var(--card-bg); color: var(--ink); box-shadow: var(--shadow); }
+    .btn-next    { background: var(--ink); color: var(--cream); box-shadow: 0 4px 16px rgba(26,26,46,.22); }
+    .btn-shuffle { background: var(--card-bg); color: var(--muted); box-shadow: var(--shadow); flex: 0.75; }
+
+    /* Completed screen */
+    .completed-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      padding: 40px 20px;
+      animation: fadeIn .4s ease;
+    }
+    .completed-screen .big-emoji { font-size: 3.5rem; }
+    .completed-screen h2 { font-size: 1.4rem; }
+    .completed-screen p  { color: var(--muted); font-size: .88rem; line-height: 1.6; }
+    .btn-restart {
+      background: var(--ink);
+      color: var(--cream);
+      border: none;
+      border-radius: 14px;
+      padding: 13px 32px;
+      font-family: var(--font-ui);
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: opacity .2s;
+    }
+    .btn-restart:hover { opacity: .85; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===========================
+       RESPONSIVE
+    =========================== */
+    @media (max-width: 420px) {
+      .tips-grid { grid-template-columns: 1fr; }
+      .scene { height: 268px; }
+      .card-jp-word { font-size: 2rem; }
+      .card-kanji-main { font-size: 3.4rem; }
+      .card-meaning { font-size: 1.15rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     PAGE: HOME
+============================================================ -->
+<div id="page-home" class="page active">
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-kanji">介護</span>
+        <div class="logo-text">
+          <span class="logo-main">Kaigo Nihongo</span>
+          <span class="logo-sub">Belajar Bahasa Jepang Perawatan</span>
+        </div>
+      </div>
+      <div class="level-badge">JLPT N4</div>
+    </div>
+  </header>
+
+  <main class="home-main">
+    <section class="hero">
+      <p class="hero-tagline">
+        Kuasai kosakata <em>kaigo</em> Jepang<br>satu kartu dalam satu waktu.
+      </p>
+    </section>
+
+    <section>
+      <p class="section-title">📚 Pilih Kategori</p>
+      <div class="card-grid">
+
+        <div class="category-card c1" onclick="openFlashcard('vocab1')">
+          <div class="cat-icon">言</div>
+          <div class="cat-info">
+            <span class="cat-label">Kosakata Bagian 1</span>
+            <span class="cat-desc">Aktivitas Harian &amp; Tubuh</span>
+            <span class="cat-count">10 kartu</span>
+          </div>
+          <span class="cat-arrow">→</span>
+        </div>
+
+        <div class="category-card c2" onclick="openFlashcard('vocab2')">
+          <div class="cat-icon">話</div>
+          <div class="cat-info">
+            <span class="cat-label">Kosakata Bagian 2</span>
+            <span class="cat-desc">Peralatan &amp; Kondisi Pasien</span>
+            <span class="cat-count">10 kartu</span>
+          </div>
+          <span class="cat-arrow">→</span>
+        </div>
+
+        <div class="category-card c3" onclick="openFlashcard('vocab3')">
+          <div class="cat-icon">福</div>
+          <div class="cat-info">
+            <span class="cat-label">Kosakata Bagian 3</span>
+            <span class="cat-desc">Komunikasi &amp; Situasi Darurat</span>
+            <span class="cat-count">10 kartu</span>
+          </div>
+          <span class="cat-arrow">→</span>
+        </div>
+
+        <div class="category-card c4" onclick="openFlashcard('kanji')">
+          <div class="cat-icon">漢</div>
+          <div class="cat-info">
+            <span class="cat-label">Kanji Kaigo</span>
+            <span class="cat-desc">Kanji Penting dalam Perawatan</span>
+            <span class="cat-count">10 kartu</span>
+          </div>
+          <span class="cat-arrow">→</span>
+        </div>
+
+      </div>
+    </section>
+
+    <section>
+      <p class="section-title">💡 Tips Belajar</p>
+      <div class="tips-grid">
+        <div class="tip-card">
+          <span class="tip-num">01</span>
+          <p>Klik kartu untuk membalik dan lihat artinya</p>
+        </div>
+        <div class="tip-card">
+          <span class="tip-num">02</span>
+          <p>Gunakan tombol <strong>Acak</strong> agar tidak hafal urutan</p>
+        </div>
+        <div class="tip-card">
+          <span class="tip-num">03</span>
+          <p>Ulangi setiap kategori minimal 3x sehari</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>介護日本語フラッシュカード &nbsp;|&nbsp; Level JLPT N4</p>
+  </footer>
+</div>
+
+
+<!-- ============================================================
+     PAGE: FLASHCARD  (single reusable page, content injected by JS)
+============================================================ -->
+<div id="page-flashcard" class="page">
+  <header class="site-header">
+    <div class="header-inner">
+      <span class="back-btn" onclick="goHome()">← Kembali</span>
+      <div class="page-title-wrap">
+        <span class="page-title-main" id="fc-title">Kosakata</span>
+        <span class="page-title-sub"  id="fc-sub">—</span>
+      </div>
+      <div class="level-badge">N4</div>
+    </div>
+  </header>
+
+  <main class="flashcard-main" id="card-area">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-text" id="progress-text">1 / 10</div>
+
+    <div class="scene" id="scene" onclick="flipCard()">
+      <div class="card-3d" id="card-3d">
+
+        <!-- FRONT -->
+        <div class="card-face card-front" id="card-front">
+          <span class="card-hint" id="fc-hint">Kosakata Kaigo</span>
+          <!-- vocab -->
+          <div id="front-vocab">
+            <div class="card-jp-word" id="fc-word"></div>
+            <div class="card-reading" id="fc-reading"></div>
+          </div>
+          <!-- kanji -->
+          <div id="front-kanji" style="display:none">
+            <div class="card-kanji-main" id="fc-kanji"></div>
+          </div>
+          <div class="tap-hint">👆 Tap untuk lihat arti</div>
+        </div>
+
+        <!-- BACK -->
+        <div class="card-face card-back" id="card-back">
+          <div class="card-meaning" id="fc-meaning"></div>
+          <!-- kanji readings (hidden for vocab) -->
+          <div class="kanji-readings" id="fc-readings" style="display:none">
+            <div class="reading-item">
+              <span class="reading-label">音読み On'yomi</span>
+              <span class="reading-val" id="fc-on"></span>
+            </div>
+            <div class="reading-item">
+              <span class="reading-label">訓読み Kun'yomi</span>
+              <span class="reading-val" id="fc-kun"></span>
+            </div>
+          </div>
+          <div class="card-explanation" id="fc-explanation"></div>
+          <div class="card-example" id="fc-example"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="controls" id="controls">
+      <button class="btn btn-prev"    onclick="prevCard()">← Prev</button>
+      <button class="btn btn-shuffle" onclick="shuffleDeck()">🔀 Acak</button>
+      <button class="btn btn-next"    onclick="nextCard()">Next →</button>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p id="fc-footer">介護日本語フラッシュカード</p>
+  </footer>
+</div>
+
+
+<!-- ============================================================
+     DATA
+============================================================ -->
+<script>
+const DATA = {
+
+  vocab1: {
+    title: 'Kosakata Bagian 1',
+    sub:   'Aktivitas Harian & Tubuh',
+    type:  'vocab',
+    accent:'acc1',
+    footer:'Kosakata Bagian 1 — Aktivitas Harian',
+    cards: [
+      { word:'介護',    reading:'かいご',           meaning:'Perawatan / Kaigo',
+        explanation:'Tindakan membantu orang tua atau penyandang disabilitas dalam kegiatan sehari-hari.',
+        example:'介護をしています。', exampleMeaning:'Saya bekerja sebagai perawat (kaigo).' },
+      { word:'食事介助', reading:'しょくじかいじょ',  meaning:'Bantuan makan',
+        explanation:'Membantu klien makan, termasuk menyuap atau mengatur posisi makan.',
+        example:'利用者さんの食事介助をします。', exampleMeaning:'Saya membantu pengguna layanan makan.' },
+      { word:'入浴介助', reading:'にゅうよくかいじょ', meaning:'Bantuan mandi',
+        explanation:'Membantu klien mandi, termasuk masuk ke bathtub atau shower.',
+        example:'午後、入浴介助があります。', exampleMeaning:'Sore ini ada jadwal membantu mandi.' },
+      { word:'トイレ介助', reading:'トイレかいじょ',  meaning:'Bantuan ke toilet',
+        explanation:'Membantu klien ke toilet dan melakukan kebutuhan buang air.',
+        example:'トイレ介助をお願いします。', exampleMeaning:'Tolong bantu ke toilet.' },
+      { word:'体位変換', reading:'たいいへんかん',    meaning:'Mengubah posisi tubuh',
+        explanation:'Membalik atau mengubah posisi tubuh klien untuk mencegah luka baring (褥瘡).',
+        example:'二時間ごとに体位変換が必要です。', exampleMeaning:'Perubahan posisi dibutuhkan setiap dua jam.' },
+      { word:'移乗',    reading:'いじょう',           meaning:'Memindahkan / Transfer',
+        explanation:'Memindahkan klien dari satu tempat ke tempat lain, misalnya dari kasur ke kursi roda.',
+        example:'ベッドから車椅子への移乗を手伝います。', exampleMeaning:'Saya membantu pindah dari kasur ke kursi roda.' },
+      { word:'歩行介助', reading:'ほこうかいじょ',   meaning:'Bantuan berjalan',
+        explanation:'Membantu klien berjalan agar tidak jatuh.',
+        example:'歩行介助は安全に行いましょう。', exampleMeaning:'Mari lakukan bantuan berjalan dengan aman.' },
+      { word:'着替え',  reading:'きがえ',             meaning:'Ganti pakaian',
+        explanation:'Proses mengganti pakaian klien, termasuk pakaian atas dan bawah.',
+        example:'朝、着替えを手伝います。', exampleMeaning:'Di pagi hari saya membantu ganti pakaian.' },
+      { word:'口腔ケア', reading:'こうくうケア',      meaning:'Perawatan mulut / Oral care',
+        explanation:'Membersihkan gigi dan mulut klien untuk menjaga kebersihan dan mencegah pneumonia.',
+        example:'毎食後、口腔ケアを行います。', exampleMeaning:'Perawatan mulut dilakukan setelah setiap makan.' },
+      { word:'排泄',    reading:'はいせつ',            meaning:'Buang air (BAK/BAB)',
+        explanation:'Segala aktivitas terkait buang air kecil maupun buang air besar klien.',
+        example:'排泄の記録をつけてください。', exampleMeaning:'Mohon catat catatan buang air klien.' }
+    ]
+  },
+
+  vocab2: {
+    title: 'Kosakata Bagian 2',
+    sub:   'Peralatan & Kondisi Pasien',
+    type:  'vocab',
+    accent:'acc2',
+    footer:'Kosakata Bagian 2 — Peralatan & Kondisi',
+    cards: [
+      { word:'車椅子',  reading:'くるまいす',  meaning:'Kursi roda',
+        explanation:'Alat bantu mobilitas beroda untuk klien yang sulit berjalan.',
+        example:'車椅子を押してください。', exampleMeaning:'Tolong dorong kursi rodanya.' },
+      { word:'歩行器',  reading:'ほこうき',    meaning:'Alat bantu jalan (Walker)',
+        explanation:'Kerangka besi untuk membantu klien berjalan agar tidak jatuh.',
+        example:'歩行器を使って歩きましょう。', exampleMeaning:'Mari berjalan menggunakan walker.' },
+      { word:'おむつ',  reading:'おむつ',      meaning:'Popok / Diaper',
+        explanation:'Digunakan untuk klien yang tidak bisa ke toilet secara mandiri.',
+        example:'おむつを交換します。', exampleMeaning:'Saya akan mengganti popoknya.' },
+      { word:'褥瘡',    reading:'じょくそう',  meaning:'Luka baring / Decubitus',
+        explanation:'Luka yang timbul karena tekanan terus-menerus pada satu area kulit.',
+        example:'褥瘡を予防するために体位変換が大切です。', exampleMeaning:'Mengubah posisi tubuh penting untuk mencegah luka baring.' },
+      { word:'認知症',  reading:'にんちしょう', meaning:'Demensia',
+        explanation:'Penurunan fungsi otak yang menyebabkan gangguan memori dan perilaku.',
+        example:'認知症の方への声かけは優しく行います。', exampleMeaning:'Berbicara kepada penderita demensia dengan lembut.' },
+      { word:'利用者',  reading:'りようしゃ',  meaning:'Pengguna layanan / Klien',
+        explanation:'Sebutan untuk orang yang menerima layanan kaigo.',
+        example:'利用者さんの体調を確認します。', exampleMeaning:'Saya memeriksa kondisi kesehatan klien.' },
+      { word:'血圧',    reading:'けつあつ',    meaning:'Tekanan darah',
+        explanation:'Ukuran tekanan darah dalam pembuluh darah.',
+        example:'毎朝、血圧を測ります。', exampleMeaning:'Setiap pagi kami mengukur tekanan darah.' },
+      { word:'体温',    reading:'たいおん',    meaning:'Suhu tubuh',
+        explanation:'Ukuran panas tubuh seseorang.',
+        example:'体温を計ってください。', exampleMeaning:'Tolong ukur suhu tubuhnya.' },
+      { word:'点滴',    reading:'てんてき',    meaning:'Infus',
+        explanation:'Pemberian cairan atau obat langsung ke pembuluh darah melalui selang.',
+        example:'点滴が終わりました。', exampleMeaning:'Infusnya sudah selesai.' },
+      { word:'アレルギー', reading:'アレルギー', meaning:'Alergi',
+        explanation:'Reaksi tubuh berlebihan terhadap zat tertentu seperti makanan atau obat.',
+        example:'食物アレルギーはありますか？', exampleMeaning:'Apakah ada alergi makanan?' }
+    ]
+  },
+
+  vocab3: {
+    title: 'Kosakata Bagian 3',
+    sub:   'Komunikasi & Situasi Darurat',
+    type:  'vocab',
+    accent:'acc3',
+    footer:'Kosakata Bagian 3 — Komunikasi & Darurat',
+    cards: [
+      { word:'緊急',      reading:'きんきゅう',    meaning:'Darurat / Mendesak',
+        explanation:'Situasi yang memerlukan tindakan segera dan cepat.',
+        example:'緊急の場合はナースコールを押してください。', exampleMeaning:'Jika darurat, tekan tombol panggil perawat.' },
+      { word:'転倒',      reading:'てんとう',      meaning:'Jatuh / Terjatuh',
+        explanation:'Klien kehilangan keseimbangan dan jatuh ke lantai.',
+        example:'転倒に注意してください。', exampleMeaning:'Harap berhati-hati agar tidak jatuh.' },
+      { word:'声かけ',    reading:'こえかけ',      meaning:'Menyapa / Berbicara kepada klien',
+        explanation:'Kebiasaan berbicara lebih dulu sebelum menyentuh atau membantu klien.',
+        example:'作業の前に必ず声かけをします。', exampleMeaning:'Selalu sapa sebelum melakukan tindakan.' },
+      { word:'申し送り',  reading:'もうしおくり',   meaning:'Serah terima informasi / Handover',
+        explanation:'Menyampaikan informasi penting dari satu shift ke shift berikutnya.',
+        example:'申し送りの時間です。', exampleMeaning:'Ini waktunya serah terima informasi.' },
+      { word:'記録',      reading:'きろく',        meaning:'Catatan / Rekaman',
+        explanation:'Dokumentasi kondisi dan kegiatan perawatan klien.',
+        example:'介護記録を書いてください。', exampleMeaning:'Tolong tulis catatan perawatannya.' },
+      { word:'報告',      reading:'ほうこく',      meaning:'Laporan / Melaporkan',
+        explanation:'Menyampaikan informasi tentang kondisi klien kepada atasan atau tim.',
+        example:'何かあったらすぐに報告してください。', exampleMeaning:'Jika ada sesuatu, segera laporkan.' },
+      { word:'嚥下',      reading:'えんげ',        meaning:'Menelan (makanan)',
+        explanation:'Proses menelan makanan atau minuman. Gangguan menelan disebut 嚥下障害.',
+        example:'嚥下に問題があります。', exampleMeaning:'Ada masalah dengan menelan.' },
+      { word:'拒否',      reading:'きょひ',        meaning:'Penolakan / Menolak',
+        explanation:'Klien menolak untuk menerima bantuan atau perawatan.',
+        example:'入浴を拒否しています。', exampleMeaning:'Klien menolak untuk mandi.' },
+      { word:'感染予防',  reading:'かんせんよぼう', meaning:'Pencegahan infeksi',
+        explanation:'Tindakan untuk mencegah penyebaran kuman dan penyakit.',
+        example:'手洗いは感染予防の基本です。', exampleMeaning:'Cuci tangan adalah dasar pencegahan infeksi.' },
+      { word:'ヒヤリハット', reading:'ヒヤリハット', meaning:'Near-miss / Hampir celaka',
+        explanation:'Kejadian yang hampir menjadi kecelakaan namun berhasil dihindari. Wajib dilaporkan.',
+        example:'ヒヤリハットを報告書に書きます。', exampleMeaning:'Saya menulis laporan near-miss.' }
+    ]
+  },
+
+  kanji: {
+    title: 'Kanji Kaigo',
+    sub:   'Kanji Penting dalam Perawatan',
+    type:  'kanji',
+    accent:'acc4',
+    footer:'Kanji Kaigo — Level N4',
+    cards: [
+      { kanji:'介', onyomi:'カイ', kunyomi:'すけ', meaning:'Perantara / Merawat',
+        explanation:'Berarti "berada di antara" atau "membantu". Dipakai dalam kata 介護 (kaigo = perawatan).',
+        example:'介護（かいご）— Perawatan', exampleMeaning:'紹介（しょうかい）— Perkenalan' },
+      { kanji:'護', onyomi:'ゴ', kunyomi:'まも・る', meaning:'Melindungi / Menjaga',
+        explanation:'Berarti "melindungi". Bersama 介 membentuk kata 介護 (kaigo = perawatan lansia).',
+        example:'護る（まもる）— Melindungi', exampleMeaning:'介護（かいご）— Perawatan lansia' },
+      { kanji:'食', onyomi:'ショク', kunyomi:'た・べる', meaning:'Makan / Makanan',
+        explanation:'Kanji dasar untuk makan dan makanan. Dipakai dalam 食事介助 (bantuan makan).',
+        example:'食事（しょくじ）— Makanan/Makan', exampleMeaning:'食堂（しょくどう）— Ruang makan' },
+      { kanji:'浴', onyomi:'ヨク', kunyomi:'あ・びる', meaning:'Mandi / Berendam',
+        explanation:'Berkaitan dengan mandi. Dalam kaigo: 入浴介助 (bantuan mandi).',
+        example:'入浴（にゅうよく）— Mandi', exampleMeaning:'浴室（よくしつ）— Kamar mandi' },
+      { kanji:'排', onyomi:'ハイ', kunyomi:'—', meaning:'Buang / Keluarkan',
+        explanation:'Berarti "mengeluarkan". Dalam kaigo: 排泄 (buang air) dan 排便 (BAB).',
+        example:'排泄（はいせつ）— Buang air', exampleMeaning:'排便（はいべん）— BAB' },
+      { kanji:'移', onyomi:'イ', kunyomi:'うつ・る', meaning:'Pindah / Berpindah',
+        explanation:'Berarti "memindahkan". Dalam kaigo: 移乗 (ijou = transfer dari kasur ke kursi roda).',
+        example:'移乗（いじょう）— Transfer/Memindahkan', exampleMeaning:'移動（いどう）— Bergerak/Berpindah' },
+      { kanji:'記', onyomi:'キ', kunyomi:'しる・す', meaning:'Mencatat / Merekam',
+        explanation:'Berarti "menulis" atau "mencatat". Dalam kaigo: 記録 (kiroku = catatan perawatan).',
+        example:'記録（きろく）— Catatan', exampleMeaning:'日記（にっき）— Buku harian' },
+      { kanji:'転', onyomi:'テン', kunyomi:'ころ・ぶ', meaning:'Jatuh / Berguling',
+        explanation:'Dalam kaigo: 転倒 (tentou = jatuh/terjatuh) adalah bahaya utama yang harus dicegah.',
+        example:'転倒（てんとう）— Terjatuh', exampleMeaning:'転換（てんかん）— Beralih/Mengubah' },
+      { kanji:'血', onyomi:'ケツ', kunyomi:'ち', meaning:'Darah',
+        explanation:'Dalam kaigo: 血圧 (ketsuatsu = tekanan darah) diukur setiap hari.',
+        example:'血圧（けつあつ）— Tekanan darah', exampleMeaning:'血糖（けっとう）— Gula darah' },
+      { kanji:'熱', onyomi:'ネツ', kunyomi:'あつ・い', meaning:'Panas / Demam',
+        explanation:'Dalam kaigo: 発熱 (hatsunetsu = demam) adalah tanda penting yang harus dilaporkan.',
+        example:'発熱（はつねつ）— Demam', exampleMeaning:'熱中症（ねっちゅうしょう）— Heat stroke' }
+    ]
+  }
+
+};
+</script>
+
+
+<!-- ============================================================
+     FLASHCARD ENGINE
+============================================================ -->
+<script>
+/* ---- State ---- */
+let currentCategory = null;
+let deck = [];
+let originalDeck = [];
+let currentIndex = 0;
+let isFlipped = false;
+
+/* ---- Navigation ---- */
+function openFlashcard(categoryKey) {
+  const cat = DATA[categoryKey];
+  currentCategory = cat;
+  originalDeck = cat.cards.slice();
+  deck = originalDeck.slice();
+  currentIndex = 0;
+
+  // Set accent class on flashcard page
+  const fp = document.getElementById('page-flashcard');
+  fp.className = 'page active ' + cat.accent;
+
+  // Header text
+  document.getElementById('fc-title').textContent = cat.title;
+  document.getElementById('fc-sub').textContent   = cat.sub;
+  document.getElementById('fc-footer').textContent = '介護日本語フラッシュカード | ' + cat.sub;
+
+  // Show / hide vocab vs kanji front elements
+  document.getElementById('front-vocab').style.display = cat.type === 'vocab' ? '' : 'none';
+  document.getElementById('front-kanji').style.display = cat.type === 'kanji' ? '' : 'none';
+  document.getElementById('fc-readings').style.display = cat.type === 'kanji' ? '' : 'none';
+
+  // Hint text
+  document.getElementById('fc-hint').textContent =
+    cat.type === 'kanji' ? 'Kanji Kaigo — Apa artinya?' : 'Kosakata Kaigo';
+
+  // Make sure scene + controls are visible (in case we're coming from completed screen)
+  document.getElementById('scene').style.display    = '';
+  document.getElementById('controls').style.display = '';
+
+  // Remove old completed screen if present
+  const old = document.getElementById('completed-screen');
+  if (old) old.remove();
+
+  showPage('page-flashcard');
+  renderCard();
+}
+
+function goHome() {
+  showPage('page-home');
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ---- Render ---- */
+function renderCard() {
+  if (currentIndex >= deck.length) {
+    showCompleted();
+    return;
+  }
+
+  // Reset flip
+  isFlipped = false;
+  document.getElementById('card-3d').classList.remove('flipped');
+
+  const c = deck[currentIndex];
+  const type = currentCategory.type;
+
+  // Progress
+  const pct = (currentIndex / deck.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent =
+    (currentIndex + 1) + ' / ' + deck.length;
+
+  if (type === 'vocab') {
+    document.getElementById('fc-word').textContent    = c.word;
+    document.getElementById('fc-reading').textContent = c.reading;
+  } else {
+    document.getElementById('fc-kanji').textContent   = c.kanji;
+    document.getElementById('fc-on').textContent      = c.onyomi  || '—';
+    document.getElementById('fc-kun').textContent     = c.kunyomi || '—';
+  }
+
+  document.getElementById('fc-meaning').textContent     = c.meaning;
+  document.getElementById('fc-explanation').textContent = c.explanation;
+
+  const exEl = document.getElementById('fc-example');
+  if (c.example) {
+    exEl.innerHTML = c.example + '<em>' + (c.exampleMeaning || '') + '</em>';
+    exEl.style.display = '';
+  } else {
+    exEl.style.display = 'none';
+  }
+}
+
+/* ---- Flip ---- */
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('card-3d').classList.toggle('flipped', isFlipped);
+}
+
+/* ---- Controls ---- */
+function nextCard() {
+  if (currentIndex < deck.length) currentIndex++;
+  renderCard();
+}
+function prevCard() {
+  if (currentIndex > 0) currentIndex--;
+  renderCard();
+}
+function shuffleDeck() {
+  deck = shuffle(originalDeck.slice());
+  currentIndex = 0;
+
+  // Restore scene if on completed screen
+  document.getElementById('scene').style.display    = '';
+  document.getElementById('controls').style.display = '';
+  const old = document.getElementById('completed-screen');
+  if (old) old.remove();
+
+  renderCard();
+}
+
+/* ---- Completed ---- */
+function showCompleted() {
+  document.getElementById('scene').style.display    = 'none';
+  document.getElementById('controls').style.display = 'none';
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('progress-text').textContent =
+    deck.length + ' / ' + deck.length;
+
+  const div = document.createElement('div');
+  div.id = 'completed-screen';
+  div.className = 'completed-screen';
+  div.innerHTML =
+    '<div class="big-emoji">🎉</div>' +
+    '<h2>Selesai!</h2>' +
+    '<p>Kamu telah menyelesaikan semua ' + deck.length + ' kartu.<br>Terus berlatih agar makin hafal!</p>' +
+    '<button class="btn-restart" onclick="restartDeck()">Ulangi dari Awal</button>';
+
+  document.getElementById('card-area').appendChild(div);
+}
+
+function restartDeck() {
+  currentIndex = 0;
+  deck = originalDeck.slice();
+  document.getElementById('scene').style.display    = '';
+  document.getElementById('controls').style.display = '';
+  const old = document.getElementById('completed-screen');
+  if (old) old.remove();
+  renderCard();
+}
+
+/* ---- Keyboard ---- */
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('page-flashcard').classList.contains('active')) return;
+  if (e.key === 'ArrowRight') nextCard();
+  if (e.key === 'ArrowLeft')  prevCard();
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+});
+
+/* ---- Fisher-Yates Shuffle ---- */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+</script>
+
+</body>
+      </html>
