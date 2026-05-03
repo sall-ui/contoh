@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漢字介護 — Kanji Kaigo Flashcard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f5f0e8;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --gold: #b8860b;
+    --gold-light: #d4a017;
+    --sage: #4a6741;
+    --mist: #8fa3a8;
+    --cream: #fdf8f0;
+    --shadow: rgba(26,20,16,0.12);
+    --shadow-deep: rgba(26,20,16,0.25);
+    --card-w: 340px;
+    --card-h: 220px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Washi paper texture via SVG pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* ── HEADER ─────────────────────────────── */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 28px 32px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--ink);
+    background: var(--cream);
+  }
+
+  .logo-block {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+
+  .logo-kanji {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 2.4rem;
+    font-weight: 600;
+    color: var(--red);
+    letter-spacing: 0.05em;
+  }
+
+  .logo-sub {
+    font-size: 0.62rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--mist);
+    margin-top: 2px;
+  }
+
+  .header-badge {
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 2px;
+  }
+
+  /* ── TOOLBAR ─────────────────────────────── */
+  .toolbar {
+    position: relative;
+    z-index: 10;
+    background: var(--cream);
+    padding: 14px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid rgba(26,20,16,0.15);
+  }
+
+  select {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    padding: 9px 14px;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%231a1410'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+    min-width: 200px;
+    transition: border-color 0.2s;
+  }
+
+  select:focus { outline: none; border-color: var(--red); }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 9px 18px;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--ink);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn:hover { background: var(--ink); color: var(--paper); }
+
+  .btn.primary {
+    background: var(--red);
+    color: var(--paper);
+    border-color: var(--red);
+  }
+
+  .btn.primary:hover { background: #a93226; border-color: #a93226; }
+
+  .toolbar-right { margin-left: auto; display: flex; gap: 10px; }
+
+  /* ── PROGRESS ────────────────────────────── */
+  .progress-bar-wrap {
+    position: relative;
+    z-index: 10;
+    background: var(--cream);
+    padding: 10px 32px;
+    border-bottom: 1px solid rgba(26,20,16,0.1);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .progress-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mist);
+    white-space: nowrap;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(26,20,16,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), var(--gold));
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    width: 0%;
+  }
+
+  .progress-count {
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .progress-count span { color: var(--red); }
+
+  /* ── CATEGORY PILLS ──────────────────────── */
+  .category-strip {
+    position: relative;
+    z-index: 10;
+    padding: 12px 32px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .cat-pill {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1.5px solid;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── DECK AREA ───────────────────────────── */
+  .deck-area {
+    position: relative;
+    z-index: 5;
+    padding: 24px 32px 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr));
+    gap: 20px;
+  }
+
+  /* ── FLASHCARD ───────────────────────────── */
+  .card-scene {
+    width: 100%;
+    height: var(--card-h);
+    perspective: 1000px;
+    cursor: pointer;
+  }
+
+  .card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-scene.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 6px;
+    border: 2px solid var(--ink);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 4px 4px 0 var(--ink);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+
+  .card-scene:hover .card-face {
+    box-shadow: 6px 6px 0 var(--ink);
+  }
+
+  /* FRONT */
+  .card-front {
+    background: var(--cream);
+    justify-content: space-between;
+  }
+
+  .card-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1.5px solid rgba(26,20,16,0.12);
+  }
+
+  .card-category-tag {
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mist);
+  }
+
+  .card-num {
+    font-size: 0.6rem;
+    color: rgba(26,20,16,0.3);
+  }
+
+  .card-front-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    position: relative;
+  }
+
+  .kanji-main {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 2.6rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+    line-height: 1.2;
+    letter-spacing: 0.05em;
+  }
+
+  /* decorative corner mark */
+  .card-front-body::after {
+    content: '表';
+    position: absolute;
+    bottom: 6px;
+    right: 10px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.55rem;
+    color: rgba(26,20,16,0.12);
+    transform: rotate(15deg);
+  }
+
+  .card-front-hint {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-align: center;
+    color: var(--mist);
+    padding: 8px;
+    border-top: 1px dashed rgba(26,20,16,0.12);
+  }
+
+  /* ── CARD BACK ───────────────────────────── */
+  .card-back {
+    background: var(--ink);
+    transform: rotateY(180deg);
+    justify-content: center;
+    padding: 16px;
+    gap: 8px;
+    position: relative;
+  }
+
+  .card-back::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgba(245,240,232,0.12);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .back-kana {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: rgba(245,240,232,0.7);
+    text-align: center;
+    letter-spacing: 0.08em;
+  }
+
+  .back-divider {
+    width: 40px;
+    height: 1px;
+    background: var(--red);
+    margin: 0 auto;
+  }
+
+  .back-meaning {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--paper);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .back-kanji-ghost {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.65rem;
+    color: rgba(245,240,232,0.15);
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  /* ── LEARNED OVERLAY ─────────────────────── */
+  .card-scene.learned .card-inner {
+    opacity: 0.55;
+  }
+
+  .card-scene.learned .card-front {
+    border-color: var(--sage);
+    box-shadow: 4px 4px 0 var(--sage);
+  }
+
+  .learned-stamp {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%) rotate(-12deg);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1.8rem;
+    color: var(--sage);
+    border: 3px solid var(--sage);
+    padding: 2px 10px;
+    border-radius: 4px;
+    opacity: 0.6;
+    z-index: 10;
+    pointer-events: none;
+    letter-spacing: 0.1em;
+  }
+
+  .card-scene.learned .learned-stamp { display: block; }
+
+  .card-scene.learned .card-front-body::after { display: none; }
+
+  /* ── EMPTY STATE ─────────────────────────── */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--mist);
+  }
+
+  .empty-state .em-kanji {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 4rem;
+    opacity: 0.3;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .empty-state p {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+  }
+
+  /* ── MARK LEARNED BTN ────────────────────── */
+  .mark-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(245,240,232,0.3);
+    background: transparent;
+    color: rgba(245,240,232,0.5);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 20;
+  }
+
+  .mark-btn:hover {
+    background: var(--sage);
+    border-color: var(--sage);
+    color: white;
+    transform: scale(1.15);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────── */
+  @media (max-width: 640px) {
+    :root { --card-w: 280px; --card-h: 200px; }
+    header { padding: 18px 16px 14px; flex-wrap: wrap; gap: 10px; }
+    .logo-kanji { font-size: 1.8rem; }
+    .toolbar { padding: 12px 16px; }
+    .deck-area { padding: 16px; gap: 14px; }
+    .progress-bar-wrap { padding: 10px 16px; }
+    .category-strip { padding: 10px 16px; }
+    select { min-width: 100%; }
+    .toolbar-right { width: 100%; }
+    .kanji-main { font-size: 2rem; }
+  }
+
+  /* ── ANIMATIONS ──────────────────────────── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-scene {
+    animation: fadeInUp 0.4s ease both;
+  }
+
+  /* stagger */
+  .card-scene:nth-child(1) { animation-delay: 0.03s }
+  .card-scene:nth-child(2) { animation-delay: 0.06s }
+  .card-scene:nth-child(3) { animation-delay: 0.09s }
+  .card-scene:nth-child(4) { animation-delay: 0.12s }
+  .card-scene:nth-child(5) { animation-delay: 0.15s }
+  .card-scene:nth-child(6) { animation-delay: 0.18s }
+  .card-scene:nth-child(7) { animation-delay: 0.21s }
+  .card-scene:nth-child(8) { animation-delay: 0.24s }
+  .card-scene:nth-child(n+9) { animation-delay: 0.27s }
+
+  /* category colors */
+  .cat-elim    { border-color: #c0392b; color: #c0392b; }
+  .cat-elim.active    { background: #c0392b; color: white; }
+  .cat-perawatan { border-color: #8e44ad; color: #8e44ad; }
+  .cat-perawatan.active { background: #8e44ad; color: white; }
+  .cat-makanan { border-color: #d4a017; color: #b8860b; }
+  .cat-makanan.active { background: #d4a017; color: white; }
+  .cat-mobilitas { border-color: #27ae60; color: #1e8449; }
+  .cat-mobilitas.active { background: #27ae60; color: white; }
+  .cat-penyakit { border-color: #2980b9; color: #1f618d; }
+  .cat-penyakit.active { background: #2980b9; color: white; }
+  .cat-posisi  { border-color: #e67e22; color: #ca6f1e; }
+  .cat-posisi.active  { background: #e67e22; color: white; }
+  .cat-all { border-color: var(--ink); color: var(--ink); }
+  .cat-all.active { background: var(--ink); color: var(--paper); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-block">
+    <span class="logo-kanji">漢字介護</span>
+    <span class="logo-sub">Kanji Kaigo — Flashcard Interaktif</span>
+  </div>
+  <div class="header-badge">Kartu Belajar</div>
+</header>
+
+<div class="toolbar">
+  <select id="categorySelect">
+    <option value="all">— Semua Kategori —</option>
+    <option value="Eliminasi & Kebersihan">Eliminasi &amp; Kebersihan</option>
+    <option value="Perawatan Diri & Mulut">Perawatan Diri &amp; Mulut</option>
+    <option value="Makanan & Minuman">Makanan &amp; Minuman</option>
+    <option value="Mobilitas & Alat Bantu">Mobilitas &amp; Alat Bantu</option>
+    <option value="Penyakit & Gejala">Penyakit &amp; Gejala</option>
+    <option value="Posisi & Postur">Posisi &amp; Postur</option>
+  </select>
+
+  <div class="toolbar-right">
+    <button class="btn" id="shuffleBtn">⇌ Acak</button>
+    <button class="btn primary" id="resetBtn">↺ Reset</button>
+  </div>
+</div>
+
+<div class="progress-bar-wrap">
+  <span class="progress-label">Dipelajari</span>
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <span class="progress-count"><span id="learnedCount">0</span> / <span id="totalCount">0</span></span>
+</div>
+
+<div class="category-strip" id="categoryStrip"></div>
+
+<div class="deck-area" id="deckArea"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────
+const DATA = [
+  // Eliminasi & Kebersihan
+  { kanji:"(ズボンを)上げる", kana:"(ズボンを) あげる", arti:"Menaikkan (celana)", cat:"Eliminasi & Kebersihan" },
+  { kanji:"足元", kana:"あしもと", arti:"Kaki / Sekitar kaki", cat:"Eliminasi & Kebersihan" },
+  { kanji:"陰部", kana:"いんぶ", arti:"Area genital", cat:"Eliminasi & Kebersihan" },
+  { kanji:"おむつ", kana:"おむつ", arti:"Popok", cat:"Eliminasi & Kebersihan" },
+  { kanji:"浣腸", kana:"かんちょう", arti:"Enema", cat:"Eliminasi & Kebersihan" },
+  { kanji:"着替える", kana:"きがえる", arti:"Ganti pakaian", cat:"Eliminasi & Kebersihan" },
+  { kanji:"(ズボンを)下げる", kana:"(ズボンを) さげる", arti:"Menurunkan (celana)", cat:"Eliminasi & Kebersihan" },
+  { kanji:"失禁", kana:"しっきん", arti:"Inkontinensia", cat:"Eliminasi & Kebersihan" },
+  { kanji:"羞恥心", kana:"しゅうちしん", arti:"Rasa malu", cat:"Eliminasi & Kebersihan" },
+  { kanji:"使い捨て手袋", kana:"つかいすててぶくろ", arti:"Sarung tangan sekali pakai", cat:"Eliminasi & Kebersihan" },
+  { kanji:"尿 / 尿器 / 尿意", kana:"にょう / にょうき / にょうい", arti:"Urine / Wadah urine / Keinginan BAK", cat:"Eliminasi & Kebersihan" },
+  { kanji:"排泄", kana:"はいせつ", arti:"Ekskresi", cat:"Eliminasi & Kebersihan" },
+  { kanji:"便 / 便意 / 便座", kana:"べん / べんい / べんざ", arti:"Feses / Keinginan BAB / Dudukan toilet", cat:"Eliminasi & Kebersihan" },
+  { kanji:"ポータブルトイレ", kana:"ポータブルトイレ", arti:"Toilet portabel", cat:"Eliminasi & Kebersihan" },
+  { kanji:"看護師 / 職員", kana:"かんごし / しょくいん", arti:"Perawat / Staf", cat:"Eliminasi & Kebersihan" },
+  { kanji:"パジャマ / 呼び出しボタン", kana:"パジャマ / よびだしボタン", arti:"Piyama / Tombol panggil", cat:"Eliminasi & Kebersihan" },
+
+  // Perawatan Diri & Mulut
+  { kanji:"衣類 / 下着 / 上着", kana:"いるい / したぎ / うわぎ", arti:"Pakaian / Pakaian dalam / Atasan", cat:"Perawatan Diri & Mulut" },
+  { kanji:"入れ歯 / 義歯", kana:"いれば / ぎし", arti:"Gigi palsu", cat:"Perawatan Diri & Mulut" },
+  { kanji:"うがい / 口腔ケア", kana:"うがい / こうくうケア", arti:"Berkumur / Perawatan mulut", cat:"Perawatan Diri & Mulut" },
+  { kanji:"起床 / 更衣", kana:"きしょう / こうい", arti:"Bangun tidur / Ganti baju", cat:"Perawatan Diri & Mulut" },
+  { kanji:"くし / 爪きり / ドライヤー", kana:"くし / つめきり / ドライヤー", arti:"Sisir / Gunting kuku / Pengering rambut", cat:"Perawatan Diri & Mulut" },
+  { kanji:"ねまき / パンツ / パジャマ", kana:"ねまき / パンツ / パジャマ", arti:"Baju tidur / Celana dalam / Piyama", cat:"Perawatan Diri & Mulut" },
+  { kanji:"歯医者 / 歯ブラシ / 歯磨き", kana:"はいしゃ / はぶらし / はみがき", arti:"Dokter gigi / Sikat gigi / Gosok gigi", cat:"Perawatan Diri & Mulut" },
+  { kanji:"ひげ剃り / みじたく", kana:"ひげそり / みじたく", arti:"Bercukur / Persiapan diri", cat:"Perawatan Diri & Mulut" },
+  { kanji:"診察 / 右側 / 左側 / 夜中", kana:"しんさつ / みぎがわ / ひだりがわ / よなか", arti:"Pemeriksaan / Sisi kanan / Sisi kiri / Tengah malam", cat:"Perawatan Diri & Mulut" },
+
+  // Makanan & Minuman
+  { kanji:"揚げもの / 炒めもの / おやつ", kana:"あげもの / いためもの / おやつ", arti:"Gorengan / Tumisan / Camilan", cat:"Makanan & Minuman" },
+  { kanji:"粥 (お粥) / カレーライス", kana:"かゆ (おかゆ) / カレーライス", arti:"Bubur / Nasi kari", cat:"Makanan & Minuman" },
+  { kanji:"献立 / 献立表", kana:"こんだて / こんだてひょう", arti:"Menu / Daftar menu", cat:"Makanan & Minuman" },
+  { kanji:"主食 / 副食 / 汁物", kana:"しゅしょく / ふくしょく / しるもの", arti:"Makanan pokok / Lauk pauk / Makanan berkuah", cat:"Makanan & Minuman" },
+  { kanji:"たまご焼き / 漬物 / 天ぷら", kana:"たまごやき / つけもの / てんぷら", arti:"Telur dadar / Acar / Tempura", cat:"Makanan & Minuman" },
+  { kanji:"豆腐 / 丼 / 煮付け / 煮物", kana:"とうふ / どんぶり / につけ / にもの", arti:"Tahu / Donburi / Rebusan bumbu / Masakan rebus", cat:"Makanan & Minuman" },
+  { kanji:"ハンバーグ / 焼き魚", kana:"ハンバーグ / やきざかな", arti:"Hamburg / Ikan bakar", cat:"Makanan & Minuman" },
+  { kanji:"プリン / 麦茶 / ヨーグルト", kana:"プリン / むぎちゃ / ヨーグルト", arti:"Puding / Teh gandum / Yogurt", cat:"Makanan & Minuman" },
+  { kanji:"温める / 冷ます", kana:"あたためる / さます", arti:"Menghangatkan / Mendinginkan", cat:"Makanan & Minuman" },
+  { kanji:"嚥下 / 誤嚥 / むせる", kana:"えんげ / ごえん / むせる", arti:"Menelan / Tersedak (Aspirasi) / Tersedak", cat:"Makanan & Minuman" },
+  { kanji:"きざむ / こぼす / 飲み込む", kana:"きざむ / こぼす / のみこむ", arti:"Memotong kecil / Tumpah / Menelan", cat:"Makanan & Minuman" },
+  { kanji:"食欲 / 水分補給", kana:"しょくよく / すいぶんほきゅう", arti:"Nafsu makan / Asupan cairan", cat:"Makanan & Minuman" },
+  { kanji:"とろみ / 一口大 / 量", kana:"とろみ / ひとくちだい / りょう", arti:"Kekentalan / Ukuran satu gigit / Jumlah", cat:"Makanan & Minuman" },
+
+  // Mobilitas & Alat Bantu
+  { kanji:"移乗 / 移動", kana:"いじょう / いどう", arti:"Transfer / Mobilisasi", cat:"Mobilitas & Alat Bantu" },
+  { kanji:"移動用リフト", kana:"いどうようりふと", arti:"Lift pemindah", cat:"Mobilitas & Alat Bantu" },
+  { kanji:"起き上がる / 寝返り", kana:"おきあがる / ねがえり", arti:"Bangun duduk / Membalik badan (tidur)", cat:"Mobilitas & Alat Bantu" },
+  { kanji:"臥床 / 離床", kana:"がしょう / りしょう", arti:"Berbaring / Meninggalkan tempat tidur", cat:"Mobilitas & Alat Bantu" },
+  { kanji:"車いす / シルバーカー", kana:"くるまいす / しるばーかー", arti:"Kursi roda / Alat bantu jalan lansia", cat:"Mobilitas & Alat Bantu" },
+  { kanji:"声かけ / 支える / 誘導", kana:"こえかけ / ささえる / ゆうどう", arti:"Memberi instruksi suara / Menopang / Memandu", cat:"Mobilitas & Alat Bantu" },
+  { kanji:"杖 / 白杖", kana:"つえ / はくじょう", arti:"Tongkat / Tongkat putih (tuna netra)", cat:"Mobilitas & Alat Bantu" },
+  { kanji:"手すり / 握る / つかまる", kana:"てすり / にぎる / つかまる", arti:"Pegangan tangan / Menggenggam / Berpegangan", cat:"Mobilitas & Alat Bantu" },
+  { kanji:"歩行器 / ブレーキ", kana:"ほこうき / ブレーキ", arti:"Alat bantu jalan (walker) / Rem", cat:"Mobilitas & Alat Bantu" },
+
+  // Penyakit & Gejala
+  { kanji:"疥癬 / 風邪 / 肺炎", kana:"かいせん / かぜ / はいえん", arti:"Skabies / Flu / Pneumonia", cat:"Penyakit & Gejala" },
+  { kanji:"高血圧症 / 認知症", kana:"こうけつあつしょう / にんちしょう", arti:"Hipertensi / Demensia", cat:"Penyakit & Gejala" },
+  { kanji:"食中毒 / 熱中症", kana:"しょくちゅうどく / ねっちゅうしょう", arti:"Keracunan makanan / Heat stroke", cat:"Penyakit & Gejala" },
+  { kanji:"アレルギー / 痛み / 嘔吐", kana:"アレルギー / いたい / おうと", arti:"Alergi / Sakit / Muntah", cat:"Penyakit & Gejala" },
+  { kanji:"片麻痺 / 拘縮 / 骨折", kana:"かたまひ / こうしゅく / こっせつ", arti:"Lumpuh sebelah / Kontraktur / Patah tulang", cat:"Penyakit & Gejala" },
+  { kanji:"下痢 / 便秘 / 脱水", kana:"げり / べんぴ / だっすい", arti:"Diare / Sembelit / Dehidrasi", cat:"Penyakit & Gejala" },
+  { kanji:"発熱 / 発汗 / 発作 / 咳", kana:"はつねつ / はっかん / ほっさ / せき", arti:"Demam / Berkeringat / Kejang / Batuk", cat:"Penyakit & Gejala" },
+  { kanji:"しびれる / むくむ / めまい", kana:"しびれる / むくむ / めまい", arti:"Kesemutan / Bengkak / Pusing", cat:"Penyakit & Gejala" },
+
+  // Posisi & Postur
+  { kanji:"仰臥位 (あおむけ)", kana:"ぎょうがい", arti:"Posisi telentang", cat:"Posisi & Postur" },
+  { kanji:"側臥位 (よこむき)", kana:"そくがい", arti:"Posisi miring", cat:"Posisi & Postur" },
+  { kanji:"腹臥位 (うつぶせ)", kana:"ふくがい", arti:"Posisi tengkurap", cat:"Posisi & Postur" },
+  { kanji:"端座位 / 椅子座位 / 立位", kana:"たんざい / いざい / りつい", arti:"Duduk di tepi kasur / Duduk di kursi / Berdiri", cat:"Posisi & Postur" },
+  { kanji:"体位 / 体位変換", kana:"たいい / たいいへんかん", arti:"Posisi tubuh / Mengubah posisi tubuh", cat:"Posisi & Postur" },
+  { kanji:"姿勢", kana:"しせい", arti:"Sikap tubuh / Postur", cat:"Posisi & Postur" },
+];
+
+// ── CATEGORY CONFIG ──────────────────────────────────
+const CATS = [
+  { key:"all", label:"Semua", cls:"cat-all" },
+  { key:"Eliminasi & Kebersihan", label:"Eliminasi", cls:"cat-elim" },
+  { key:"Perawatan Diri & Mulut", label:"Perawatan Diri", cls:"cat-perawatan" },
+  { key:"Makanan & Minuman", label:"Makanan", cls:"cat-makanan" },
+  { key:"Mobilitas & Alat Bantu", label:"Mobilitas", cls:"cat-mobilitas" },
+  { key:"Penyakit & Gejala", label:"Penyakit", cls:"cat-penyakit" },
+  { key:"Posisi & Postur", label:"Posisi", cls:"cat-posisi" },
+];
+
+const CAT_ACCENT = {
+  "Eliminasi & Kebersihan": "#c0392b",
+  "Perawatan Diri & Mulut": "#8e44ad",
+  "Makanan & Minuman": "#d4a017",
+  "Mobilitas & Alat Bantu": "#27ae60",
+  "Penyakit & Gejala": "#2980b9",
+  "Posisi & Postur": "#e67e22",
+};
+
+// ── STATE ────────────────────────────────────────────
+let currentFilter = 'all';
+let learned = new Set();
+let displayOrder = [];
+
+// ── RENDER PILLS ─────────────────────────────────────
+function renderPills() {
+  const strip = document.getElementById('categoryStrip');
+  strip.innerHTML = '';
+  CATS.forEach(c => {
+    const pill = document.createElement('button');
+    pill.className = 'cat-pill ' + c.cls + (currentFilter === c.key ? ' active' : '');
+    pill.textContent = c.label;
+    pill.addEventListener('click', () => {
+      currentFilter = c.key;
+      document.getElementById('categorySelect').value = c.key;
+      renderPills();
+      renderDeck();
+    });
+    strip.appendChild(pill);
+  });
+}
+
+// ── FILTERED DATA ────────────────────────────────────
+function filteredData() {
+  if (currentFilter === 'all') return displayOrder.map(i => DATA[i]);
+  return displayOrder.map(i => DATA[i]).filter(d => d.cat === currentFilter);
+}
+
+// ── SHUFFLE ──────────────────────────────────────────
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ── UPDATE PROGRESS ───────────────────────────────────
+function updateProgress() {
+  const fd = filteredData();
+  const total = fd.length;
+  const learnedInView = fd.filter(d => learned.has(d.kanji)).length;
+  document.getElementById('learnedCount').textContent = learnedInView;
+  document.getElementById('totalCount').textContent = total;
+  const pct = total === 0 ? 0 : (learnedInView / total * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ── RENDER DECK ───────────────────────────────────────
+function renderDeck() {
+  const deck = document.getElementById('deckArea');
+  deck.innerHTML = '';
+  const cards = filteredData();
+
+  updateProgress();
+
+  if (cards.length === 0) {
+    deck.innerHTML = '<div class="empty-state"><span class="em-kanji">無</span><p>Tidak ada kartu untuk kategori ini.</p></div>';
+    return;
+  }
+
+  cards.forEach((d, idx) => {
+    const isLearned = learned.has(d.kanji);
+    const accent = CAT_ACCENT[d.cat] || '#1a1410';
+
+    const scene = document.createElement('div');
+    scene.className = 'card-scene' + (isLearned ? ' learned' : '');
+    scene.dataset.kanji = d.kanji;
+
+    const inner = document.createElement('div');
+    inner.className = 'card-inner';
+
+    // FRONT
+    const front = document.createElement('div');
+    front.className = 'card-face card-front';
+    front.style.borderColor = accent;
+    front.style.boxShadow = `4px 4px 0 ${accent}`;
+
+    front.innerHTML = `
+      <div class="card-header-bar">
+        <span class="card-category-tag">${d.cat}</span>
+        <span class="card-num">#${String(idx+1).padStart(2,'0')}</span>
+      </div>
+      <div class="card-front-body">
+        <div class="kanji-main">${d.kanji}</div>
+      </div>
+      <div class="card-front-hint">タップして確認 — Klik untuk lihat jawaban</div>
+    `;
+
+    // BACK
+    const back = document.createElement('div');
+    back.className = 'card-face card-back';
+    back.innerHTML = `
+      <div class="back-kana">${d.kana}</div>
+      <div class="back-divider"></div>
+      <div class="back-meaning">${d.arti}</div>
+      <div class="back-kanji-ghost">${d.kanji}</div>
+      <button class="mark-btn" title="Tandai sudah dipelajari">✓</button>
+    `;
+
+    // Stamp
+    const stamp = document.createElement('div');
+    stamp.className = 'learned-stamp';
+    stamp.textContent = '習得';
+
+    inner.appendChild(front);
+    inner.appendChild(back);
+    scene.appendChild(inner);
+    scene.appendChild(stamp);
+
+    // Flip on click (excluding mark button)
+    scene.addEventListener('click', (e) => {
+      if (e.target.closest('.mark-btn')) return;
+      scene.classList.toggle('flipped');
+    });
+
+    // Mark learned
+    const markBtn = back.querySelector('.mark-btn');
+    markBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (learned.has(d.kanji)) {
+        learned.delete(d.kanji);
+        scene.classList.remove('learned');
+      } else {
+        learned.add(d.kanji);
+        scene.classList.add('learned');
+        // auto-flip back after a moment
+        setTimeout(() => scene.classList.remove('flipped'), 600);
+      }
+      updateProgress();
+    });
+
+    deck.appendChild(scene);
+  });
+}
+
+// ── INIT ─────────────────────────────────────────────
+function init() {
+  displayOrder = DATA.map((_, i) => i);
+
+  // category select
+  document.getElementById('categorySelect').addEventListener('change', (e) => {
+    currentFilter = e.target.value;
+    renderPills();
+    renderDeck();
+  });
+
+  // shuffle
+  document.getElementById('shuffleBtn').addEventListener('click', () => {
+    shuffle(displayOrder);
+    renderDeck();
+  });
+
+  // reset
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    learned.clear();
+    displayOrder = DATA.map((_, i) => i);
+    renderDeck();
+  });
+
+  renderPills();
+  renderDeck();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
