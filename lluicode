@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>漢字介護 Flashcard</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-deep: #1a6b6b;
+    --teal-mid: #2a9090;
+    --teal-light: #4dbdbd;
+    --teal-pale: #e6f7f7;
+    --sage: #7aab8a;
+    --sage-light: #e8f5ed;
+    --cream: #f7f9f8;
+    --charcoal: #1e2d2d;
+    --slate: #4a6060;
+    --mist: #a8c4c4;
+    --white: #ffffff;
+    --shadow-soft: 0 4px 24px rgba(26,107,107,0.10);
+    --shadow-card: 0 8px 40px rgba(26,107,107,0.16);
+    --radius-lg: 20px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', 'Noto Sans JP', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    color: var(--charcoal);
+    padding: 0 0 60px;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, var(--teal-deep) 0%, var(--teal-mid) 100%);
+    color: white;
+    padding: 24px 20px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '介護';
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    font-size: 96px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+    opacity: 0.07;
+    line-height: 1;
+    user-select: none;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  header p {
+    font-size: 13px;
+    opacity: 0.75;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+  }
+
+  /* Controls */
+  .controls {
+    padding: 16px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .controls-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  select {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--mist);
+    background: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--charcoal);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%232a9090' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+  }
+  select:focus { outline: none; border-color: var(--teal-mid); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .btn-teal {
+    background: var(--teal-mid);
+    color: white;
+  }
+  .btn-teal:hover { background: var(--teal-deep); transform: translateY(-1px); }
+
+  .btn-outline {
+    background: var(--white);
+    color: var(--teal-deep);
+    border: 1.5px solid var(--mist);
+  }
+  .btn-outline:hover { background: var(--teal-pale); border-color: var(--teal-light); }
+
+  .btn-sage {
+    background: var(--sage);
+    color: white;
+  }
+  .btn-sage:hover { background: #5e9470; transform: translateY(-1px); }
+
+  .btn-danger {
+    background: #e07070;
+    color: white;
+  }
+  .btn-danger:hover { background: #c45858; }
+  .btn:active { transform: scale(0.97); }
+
+  /* Stats bar */
+  .stats-bar {
+    max-width: 500px;
+    margin: 12px auto 0;
+    padding: 0 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--slate);
+  }
+  .stats-pill {
+    background: var(--white);
+    border: 1.5px solid var(--mist);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: var(--shadow-soft);
+  }
+  .stats-pill span { color: var(--teal-deep); font-weight: 600; }
+
+  /* Progress bar */
+  .progress-wrap {
+    max-width: 500px;
+    margin: 10px auto 0;
+    padding: 0 16px;
+  }
+  .progress-track {
+    height: 4px;
+    background: var(--mist);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal-mid), var(--sage));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  /* Card area */
+  .card-area {
+    max-width: 500px;
+    margin: 20px auto 0;
+    padding: 0 16px;
+  }
+
+  /* Flashcard */
+  .flashcard-wrap {
+    perspective: 1200px;
+    height: 300px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .flashcard-inner.flipped { transform: rotateY(180deg); }
+
+  .flashcard-face {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 24px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-front {
+    background: linear-gradient(145deg, var(--white) 0%, var(--teal-pale) 100%);
+    border: 1.5px solid rgba(77,189,189,0.2);
+  }
+  .card-back {
+    background: linear-gradient(145deg, var(--teal-deep) 0%, #145050 100%);
+    color: white;
+    transform: rotateY(180deg);
+  }
+
+  .card-category-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 99px;
+    background: var(--teal-light);
+    color: white;
+  }
+  .card-back .card-category-badge {
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.85);
+  }
+
+  .card-hint {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    font-size: 11px;
+    color: var(--mist);
+    letter-spacing: 0.04em;
+  }
+  .card-back .card-hint { color: rgba(255,255,255,0.3); }
+
+  .card-front .kanji-main {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: clamp(32px, 8vw, 52px);
+    font-weight: 700;
+    color: var(--teal-deep);
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .card-back .kana {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: clamp(20px, 5vw, 28px);
+    font-weight: 400;
+    margin-bottom: 14px;
+    color: var(--teal-light);
+    letter-spacing: 0.08em;
+  }
+  .card-back .meaning {
+    font-size: clamp(16px, 4vw, 22px);
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.4;
+    color: white;
+  }
+  .card-back .category-label {
+    margin-top: 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.04em;
+  }
+
+  /* Mastered overlay */
+  .card-front.mastered-card {
+    opacity: 0.55;
+    filter: grayscale(30%);
+  }
+  .mastered-tag {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-12deg);
+    background: var(--sage);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 6px 18px;
+    border-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    pointer-events: none;
+    text-transform: uppercase;
+  }
+
+  /* Navigation */
+  .nav-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-row .btn {
+    flex: 1;
+    max-width: 130px;
+    padding: 12px 10px;
+    font-size: 15px;
+  }
+  .counter {
+    font-size: 14px;
+    color: var(--slate);
+    font-weight: 500;
+    min-width: 70px;
+    text-align: center;
+  }
+
+  /* Action row */
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .action-row .btn { flex: 1; padding: 10px 8px; font-size: 13px; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--slate);
+  }
+  .empty-state .emoji { font-size: 48px; margin-bottom: 14px; }
+  .empty-state h3 { font-size: 18px; margin-bottom: 8px; color: var(--charcoal); }
+  .empty-state p { font-size: 14px; line-height: 1.5; }
+
+  /* Completed state */
+  .completed-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    border: 1.5px solid var(--mist);
+  }
+  .completed-state .emoji { font-size: 52px; margin-bottom: 16px; }
+  .completed-state h3 { font-size: 20px; margin-bottom: 8px; color: var(--teal-deep); font-family: 'DM Serif Display', serif; }
+  .completed-state p { font-size: 14px; color: var(--slate); margin-bottom: 20px; }
+
+  /* Legend */
+  .legend {
+    max-width: 500px;
+    margin: 16px auto 0;
+    padding: 0 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .legend-item {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    background: var(--white);
+    border: 1.5px solid var(--mist);
+    color: var(--slate);
+    white-space: nowrap;
+  }
+
+  @keyframes cardEnter {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .card-animate { animation: cardEnter 0.3s ease forwards; }
+
+  @media (max-width: 360px) {
+    .card-front .kanji-main { font-size: 28px; }
+    .card-back .kana { font-size: 18px; }
+    .card-back .meaning { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>漢字介護 Flashcard</h1>
+  <p>Kosakata Bahasa Jepang Keperawatan</p>
+</header>
+
+<div class="controls">
+  <div class="controls-row">
+    <select id="categoryFilter">
+      <option value="all">📂 Semua Kategori</option>
+      <option value="Eliminasi & Kebersihan">🚿 Eliminasi & Kebersihan</option>
+      <option value="Perawatan Diri & Mulut">🪥 Perawatan Diri & Mulut</option>
+      <option value="Makanan & Minuman">🍱 Makanan & Minuman</option>
+      <option value="Mobilitas & Alat Bantu">♿ Mobilitas & Alat Bantu</option>
+      <option value="Penyakit & Gejala">🏥 Penyakit & Gejala</option>
+      <option value="Posisi & Postur">🛏️ Posisi & Postur</option>
+    </select>
+    <button class="btn btn-teal" onclick="shuffleCards()" title="Acak Kartu">🔀 Acak</button>
+  </div>
+  <div class="controls-row">
+    <button class="btn btn-outline" onclick="resetMastered()" style="flex:1">↩️ Reset Hafalan</button>
+    <button class="btn btn-outline" onclick="showOnlyUnmastered()" style="flex:1">🎯 Belum Hafal Saja</button>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stats-pill">Kartu: <span id="totalCount">0</span></div>
+  <div class="stats-pill">✅ Hafal: <span id="masteredCount">0</span></div>
+  <div class="stats-pill">📝 Sisa: <span id="remainCount">0</span></div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<div class="card-area" id="cardArea">
+  <!-- card rendered by JS -->
+</div>
+
+<div class="legend">
+  <span class="legend-item">🚿 Eliminasi</span>
+  <span class="legend-item">🪥 Perawatan Diri</span>
+  <span class="legend-item">🍱 Makanan</span>
+  <span class="legend-item">♿ Mobilitas</span>
+  <span class="legend-item">🏥 Penyakit</span>
+  <span class="legend-item">🛏️ Posisi</span>
+</div>
+
+<script>
+const RAW_DATA = [
+  // Eliminasi & Kebersihan
+  { kanji:"(ズボンを) 上げる", kana:"(ズボンを) あげる", arti:"Menaikkan (celana)", kat:"Eliminasi & Kebersihan" },
+  { kanji:"足元", kana:"あしもと", arti:"Kaki / Sekitar kaki", kat:"Eliminasi & Kebersihan" },
+  { kanji:"陰部", kana:"いんぶ", arti:"Area genital", kat:"Eliminasi & Kebersihan" },
+  { kanji:"おむつ", kana:"おむつ", arti:"Popok", kat:"Eliminasi & Kebersihan" },
+  { kanji:"浣腸", kana:"かんちょう", arti:"Enema", kat:"Eliminasi & Kebersihan" },
+  { kanji:"着替える", kana:"きがえる", arti:"Ganti pakaian", kat:"Eliminasi & Kebersihan" },
+  { kanji:"(ズボンを) 下げる", kana:"(ズボンを) さげる", arti:"Menurunkan (celana)", kat:"Eliminasi & Kebersihan" },
+  { kanji:"失禁", kana:"しっきん", arti:"Inkontinensia", kat:"Eliminasi & Kebersihan" },
+  { kanji:"羞恥心", kana:"しゅうちしん", arti:"Rasa malu", kat:"Eliminasi & Kebersihan" },
+  { kanji:"使い捨て手袋", kana:"つかいすててぶくろ", arti:"Sarung tangan sekali pakai", kat:"Eliminasi & Kebersihan" },
+  { kanji:"尿 / 尿器 / 尿意", kana:"にょう / にょうき / にょうい", arti:"Urine / Wadah urine / Keinginan BAK", kat:"Eliminasi & Kebersihan" },
+  { kanji:"排泄", kana:"はいせつ", arti:"Ekskresi", kat:"Eliminasi & Kebersihan" },
+  { kanji:"便 / 便意 / 便座", kana:"べん / べんい / べんざ", arti:"Feses / Keinginan BAB / Dudukan toilet", kat:"Eliminasi & Kebersihan" },
+  { kanji:"ポータブルトイレ", kana:"ポータブルトイレ", arti:"Toilet portabel", kat:"Eliminasi & Kebersihan" },
+  { kanji:"看護師 / 職員", kana:"かんごし / しょくいん", arti:"Perawat / Staf", kat:"Eliminasi & Kebersihan" },
+  { kanji:"パジャマ / 呼び出しボタン", kana:"パジャマ / よびだしボタン", arti:"Piyama / Tombol panggil", kat:"Eliminasi & Kebersihan" },
+  // Perawatan Diri & Mulut
+  { kanji:"衣類 / 下着 / 上着", kana:"いるい / したぎ / うわぎ", arti:"Pakaian / Pakaian dalam / Atasan", kat:"Perawatan Diri & Mulut" },
+  { kanji:"入れ歯 / 義歯", kana:"いれば / ぎし", arti:"Gigi palsu", kat:"Perawatan Diri & Mulut" },
+  { kanji:"うがい / 口腔ケア", kana:"うがい / こうくうケア", arti:"Berkumur / Perawatan mulut", kat:"Perawatan Diri & Mulut" },
+  { kanji:"起床 / 更衣", kana:"きしょう / こうい", arti:"Bangun tidur / Ganti baju", kat:"Perawatan Diri & Mulut" },
+  { kanji:"くし / 爪きり / ドライヤー", kana:"くし / つめきり / ドライヤー", arti:"Sisir / Gunting kuku / Pengering rambut", kat:"Perawatan Diri & Mulut" },
+  { kanji:"ねまき / パンツ / パジャマ", kana:"ねまき / パンツ / パジャマ", arti:"Baju tidur / Celana dalam / Piyama", kat:"Perawatan Diri & Mulut" },
+  { kanji:"歯医者 / 歯ブラシ / 歯磨き", kana:"はいしゃ / はぶらし / はみがき", arti:"Dokter gigi / Sikat gigi / Gosok gigi", kat:"Perawatan Diri & Mulut" },
+  { kanji:"ひげ剃り / みじたく", kana:"ひげそり / みじたく", arti:"Bercukur / Persiapan diri", kat:"Perawatan Diri & Mulut" },
+  { kanji:"診察 / 右側 / 左側 / 夜中", kana:"しんさつ / みぎがわ / ひだりがわ / よなか", arti:"Pemeriksaan / Sisi kanan / Sisi kiri / Tengah malam", kat:"Perawatan Diri & Mulut" },
+  // Makanan & Minuman
+  { kanji:"揚げもの / 炒めもの / おやつ", kana:"あげもの / いためもの / おやつ", arti:"Gorengan / Tumisan / Camilan", kat:"Makanan & Minuman" },
+  { kanji:"粥 (お粥) / カレーライス", kana:"かゆ (おかゆ) / カレーライス", arti:"Bubur / Nasi kari", kat:"Makanan & Minuman" },
+  { kanji:"献立 / 献立表", kana:"こんだて / こんだてひょう", arti:"Menu / Daftar menu", kat:"Makanan & Minuman" },
+  { kanji:"主食 / 副食 / 汁物", kana:"しゅしょく / ふくしょく / しるもの", arti:"Makanan pokok / Lauk pauk / Makanan berkuah", kat:"Makanan & Minuman" },
+  { kanji:"たまご焼き / 漬物 / 天ぷら", kana:"たまごやき / つけもの / てんぷら", arti:"Telur dadar / Acar / Tempura", kat:"Makanan & Minuman" },
+  { kanji:"豆腐 / 丼 / 煮付け / 煮物", kana:"とうふ / どんぶり / につけ / にもの", arti:"Tahu / Donburi / Rebusan bumbu / Masakan rebus", kat:"Makanan & Minuman" },
+  { kanji:"ハンバーグ / 焼き魚", kana:"ハンバーグ / やきざかな", arti:"Hamburg / Ikan bakar", kat:"Makanan & Minuman" },
+  { kanji:"プリン / 麦茶 / ヨーグルト", kana:"プリン / むぎちゃ / ヨーグルト", arti:"Puding / Teh gandum / Yogurt", kat:"Makanan & Minuman" },
+  { kanji:"温める / 冷ます", kana:"あたためる / さます", arti:"Menghangatkan / Mendinginkan", kat:"Makanan & Minuman" },
+  { kanji:"嚥下 / 誤嚥 / むせる", kana:"えんげ / ごえん / むせる", arti:"Menelan / Aspirasi / Tersedak", kat:"Makanan & Minuman" },
+  { kanji:"きざむ / こぼす / 飲み込む", kana:"きざむ / こぼす / のみこむ", arti:"Memotong kecil / Tumpah / Menelan", kat:"Makanan & Minuman" },
+  { kanji:"食欲 / 水分補給", kana:"しょくよく / すいぶんほきゅう", arti:"Nafsu makan / Asupan cairan", kat:"Makanan & Minuman" },
+  { kanji:"とろみ / 一口大 / 量", kana:"とろみ / ひとくちだい / りょう", arti:"Kekentalan / Ukuran satu gigit / Jumlah", kat:"Makanan & Minuman" },
+  // Mobilitas & Alat Bantu
+  { kanji:"移乗 / 移動", kana:"いじょう / いどう", arti:"Transfer / Mobilisasi", kat:"Mobilitas & Alat Bantu" },
+  { kanji:"移動用リフト", kana:"いどうようリフト", arti:"Lift pemindah", kat:"Mobilitas & Alat Bantu" },
+  { kanji:"起き上がる / 寝返り", kana:"おきあがる / ねがえり", arti:"Bangun duduk / Membalik badan", kat:"Mobilitas & Alat Bantu" },
+  { kanji:"臥床 / 離床", kana:"がしょう / りしょう", arti:"Berbaring / Meninggalkan tempat tidur", kat:"Mobilitas & Alat Bantu" },
+  { kanji:"車いす / シルバーカー", kana:"くるまいす / シルバーカー", arti:"Kursi roda / Alat bantu jalan lansia", kat:"Mobilitas & Alat Bantu" },
+  { kanji:"声かけ / 支える / 誘導", kana:"こえかけ / ささえる / ゆうどう", arti:"Instruksi suara / Menopang / Memandu", kat:"Mobilitas & Alat Bantu" },
+  { kanji:"杖 / 白杖", kana:"つえ / はくじょう", arti:"Tongkat / Tongkat putih (tuna netra)", kat:"Mobilitas & Alat Bantu" },
+  { kanji:"手すり / 握る / つかまる", kana:"てすり / にぎる / つかまる", arti:"Pegangan tangan / Menggenggam / Berpegangan", kat:"Mobilitas & Alat Bantu" },
+  { kanji:"歩行器 / ブレーキ", kana:"ほこうき / ブレーキ", arti:"Walker / Rem", kat:"Mobilitas & Alat Bantu" },
+  // Penyakit & Gejala
+  { kanji:"疥癬 / 風邪 / 肺炎", kana:"かいせん / かぜ / はいえん", arti:"Skabies / Flu / Pneumonia", kat:"Penyakit & Gejala" },
+  { kanji:"高血圧症 / 認知症", kana:"こうけつあつしょう / にんちしょう", arti:"Hipertensi / Demensia", kat:"Penyakit & Gejala" },
+  { kanji:"食中毒 / 熱中症", kana:"しょくちゅうどく / ねっちゅうしょう", arti:"Keracunan makanan / Heat stroke", kat:"Penyakit & Gejala" },
+  { kanji:"アレルギー / 痛み / 嘔吐", kana:"アレルギー / いたみ / おうと", arti:"Alergi / Sakit / Muntah", kat:"Penyakit & Gejala" },
+  { kanji:"片麻痺 / 拘縮 / 骨折", kana:"かたまひ / こうしゅく / こっせつ", arti:"Lumpuh sebelah / Kontraktur / Patah tulang", kat:"Penyakit & Gejala" },
+  { kanji:"下痢 / 便秘 / 脱水", kana:"げり / べんぴ / だっすい", arti:"Diare / Sembelit / Dehidrasi", kat:"Penyakit & Gejala" },
+  { kanji:"発熱 / 発汗 / 発作 / 咳", kana:"はつねつ / はっかん / ほっさ / せき", arti:"Demam / Berkeringat / Kejang / Batuk", kat:"Penyakit & Gejala" },
+  { kanji:"しびれる / むくむ / めまい", kana:"しびれる / むくむ / めまい", arti:"Kesemutan / Bengkak / Pusing", kat:"Penyakit & Gejala" },
+  // Posisi & Postur
+  { kanji:"仰臥位 (あおむけ)", kana:"ぎょうがい", arti:"Posisi telentang", kat:"Posisi & Postur" },
+  { kanji:"側臥位 (よこむき)", kana:"そくがい", arti:"Posisi miring", kat:"Posisi & Postur" },
+  { kanji:"腹臥位 (うつぶせ)", kana:"ふくがい", arti:"Posisi tengkurap", kat:"Posisi & Postur" },
+  { kanji:"端座位 / 椅子座位 / 立位", kana:"たんざい / いざい / りつい", arti:"Duduk di tepi kasur / Duduk di kursi / Berdiri", kat:"Posisi & Postur" },
+  { kanji:"体位 / 体位変換", kana:"たいい / たいいへんかん", arti:"Posisi tubuh / Mengubah posisi tubuh", kat:"Posisi & Postur" },
+  { kanji:"姿勢", kana:"しせい", arti:"Sikap tubuh / Postur", kat:"Posisi & Postur" },
+];
+
+const EMOJI_MAP = {
+  "Eliminasi & Kebersihan": "🚿",
+  "Perawatan Diri & Mulut": "🪥",
+  "Makanan & Minuman": "🍱",
+  "Mobilitas & Alat Bantu": "♿",
+  "Penyakit & Gejala": "🏥",
+  "Posisi & Postur": "🛏️"
+};
+
+let deck = [];
+let masteredSet = new Set();
+let currentIndex = 0;
+let isFlipped = false;
+let filterMode = 'all'; // 'all' or 'unmastered'
+
+function getFiltered() {
+  const cat = document.getElementById('categoryFilter').value;
+  let cards = cat === 'all' ? [...RAW_DATA] : RAW_DATA.filter(c => c.kat === cat);
+  if (filterMode === 'unmastered') {
+    cards = cards.filter(c => !masteredSet.has(cardKey(c)));
+  }
+  return cards;
+}
+
+function cardKey(c) { return c.kanji + '|' + c.kat; }
+
+function buildDeck() {
+  deck = getFiltered();
+  currentIndex = 0;
+  isFlipped = false;
+  render();
+}
+
+function shuffleCards() {
+  deck = getFiltered();
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  currentIndex = 0;
+  isFlipped = false;
+  render();
+}
+
+function showOnlyUnmastered() {
+  filterMode = filterMode === 'unmastered' ? 'all' : 'unmastered';
+  document.querySelector('[onclick="showOnlyUnmastered()"]').textContent =
+    filterMode === 'unmastered' ? '📂 Tampilkan Semua' : '🎯 Belum Hafal Saja';
+  buildDeck();
+}
+
+function resetMastered() {
+  masteredSet.clear();
+  filterMode = 'all';
+  document.querySelector('[onclick="showOnlyUnmastered()"]').textContent = '🎯 Belum Hafal Saja';
+  buildDeck();
+}
+
+function updateStats() {
+  const cat = document.getElementById('categoryFilter').value;
+  const allInCat = cat === 'all' ? RAW_DATA : RAW_DATA.filter(c => c.kat === cat);
+  const masteredInCat = allInCat.filter(c => masteredSet.has(cardKey(c))).length;
+  const total = deck.length;
+  const mastered = deck.filter(c => masteredSet.has(cardKey(c))).length;
+
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('masteredCount').textContent = masteredInCat;
+  document.getElementById('remainCount').textContent = total - mastered;
+
+  const pct = total > 0 ? Math.round((masteredInCat / allInCat.length) * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function render() {
+  const area = document.getElementById('cardArea');
+  updateStats();
+
+  if (deck.length === 0) {
+    area.innerHTML = `<div class="empty-state">
+      <div class="emoji">🎉</div>
+      <h3>Tidak ada kartu</h3>
+      <p>Semua kartu sudah dihafal atau tidak ada kartu di kategori ini.<br>Coba reset hafalan atau ganti filter.</p>
+    </div>`;
+    return;
+  }
+
+  // All mastered in deck — show completion
+  const allMastered = deck.every(c => masteredSet.has(cardKey(c)));
+  if (allMastered && filterMode !== 'unmastered') {
+    area.innerHTML = `<div class="completed-state">
+      <div class="emoji">🏆</div>
+      <h3>Semua Kartu Hafal!</h3>
+      <p>Hebat! Kamu sudah hafal semua ${deck.length} kartu di sesi ini.</p>
+      <button class="btn btn-teal" onclick="resetMastered()" style="width:100%;justify-content:center;padding:14px">↩️ Mulai Ulang</button>
+    </div>`;
+    return;
+  }
+
+  if (currentIndex >= deck.length) currentIndex = deck.length - 1;
+  if (currentIndex < 0) currentIndex = 0;
+
+  const card = deck[currentIndex];
+  const isMastered = masteredSet.has(cardKey(card));
+  const emoji = EMOJI_MAP[card.kat] || '📌';
+
+  area.innerHTML = `
+    <div class="flashcard-wrap" onclick="flipCard()" id="flashcardWrap">
+      <div class="flashcard-inner ${isFlipped ? 'flipped' : ''}" id="cardInner">
+        <div class="flashcard-face card-front ${isMastered ? 'mastered-card' : ''}">
+          <span class="card-category-badge">${emoji} ${card.kat}</span>
+          <div class="kanji-main">${card.kanji}</div>
+          ${isMastered ? '<div class="mastered-tag">✓ Hafal</div>' : ''}
+          <span class="card-hint">ketuk untuk lihat jawaban</span>
+        </div>
+        <div class="flashcard-face card-back">
+          <span class="card-category-badge">${emoji} ${card.kat}</span>
+          <div class="kana">${card.kana}</div>
+          <div class="meaning">${card.arti}</div>
+          <div class="category-label">${card.kat}</div>
+          <span class="card-hint">ketuk untuk balik</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-outline" onclick="prevCard()">← Prev</button>
+      <div class="counter">${currentIndex + 1} / ${deck.length}</div>
+      <button class="btn btn-outline" onclick="nextCard()">Next →</button>
+    </div>
+
+    <div class="action-row">
+      <button class="btn ${isMastered ? 'btn-danger' : 'btn-sage'}" onclick="toggleMastered()">
+        ${isMastered ? '↩️ Batal Hafal' : '✅ Sudah Hafal'}
+      </button>
+      <button class="btn btn-outline" onclick="nextCard()">⏭ Lewati</button>
+    </div>
+  `;
+
+  // animate
+  const wrap = document.getElementById('flashcardWrap');
+  if (wrap) wrap.classList.add('card-animate');
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  const inner = document.getElementById('cardInner');
+  if (inner) {
+    inner.classList.toggle('flipped', isFlipped);
+  }
+}
+
+function nextCard() {
+  isFlipped = false;
+  currentIndex = (currentIndex + 1) % deck.length;
+  render();
+}
+
+function prevCard() {
+  isFlipped = false;
+  currentIndex = (currentIndex - 1 + deck.length) % deck.length;
+  render();
+}
+
+function toggleMastered() {
+  const card = deck[currentIndex];
+  const key = cardKey(card);
+  if (masteredSet.has(key)) {
+    masteredSet.delete(key);
+  } else {
+    masteredSet.add(key);
+    // auto-advance after marking mastered
+    setTimeout(() => {
+      isFlipped = false;
+      if (filterMode === 'unmastered') {
+        deck = getFiltered();
+        if (currentIndex >= deck.length) currentIndex = Math.max(0, deck.length - 1);
+      } else {
+        currentIndex = (currentIndex + 1) % deck.length;
+      }
+      render();
+    }, 400);
+    updateStats();
+    return;
+  }
+  render();
+}
+
+// Category filter change
+document.getElementById('categoryFilter').addEventListener('change', () => {
+  buildDeck();
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') nextCard();
+  else if (e.key === 'ArrowLeft') prevCard();
+  else if (e.key === ' ') { e.preventDefault(); flipCard(); }
+  else if (e.key === 'Enter') toggleMastered();
+});
+
+// Init
+buildDeck();
+</script>
+</body>
+</html>
